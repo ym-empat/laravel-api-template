@@ -1,0 +1,122 @@
+version: '3'
+
+services:
+  nginx:
+    image: 'nginx:alpine'
+    networks:
+      - laravel-api-template
+    ports:
+      - '${APP_PORT:-80}:80'
+    volumes:
+      - '.:/var/www/html'
+      - './docker/nginx/nginx.conf:/etc/nginx/nginx.conf'
+      - './docker/nginx/conf.d:/etc/nginx/conf.d'
+    depends_on:
+      - api
+  
+  api:
+    build: 
+      context: ./docker/api
+      dockerfile: Dockerfile
+    image: 'laravel-api-template:latest'
+    networks:
+      - laravel-api-template
+    volumes:
+      - '.:/var/www/html'
+      - './docker/api/php.ini:/usr/local/etc/php/php.ini'
+      - './docker/ssh:/home/www/.ssh'
+      - './docker/api/.bashrc:/home/www/.bashrc'
+    depends_on:
+      - mysql
+      - redis
+
+  #horizon:
+  #  image: 'laravel-api-template:latest'
+  #  command: 'php artisan horizon'
+  #  networks:
+  #    - laravel-api-template
+  #  volumes:
+  #    - '.:/var/www/html'
+  #    - './docker/api/php.ini:/usr/local/etc/php/php.ini'
+  #    - './docker/ssh:/home/www/.ssh'
+  #    - './docker/api/.bashrc:/home/www/.bashrc'
+  #  depends_on:
+  #    - mysql
+  #    - redis
+
+  mysql:
+    image: 'mysql:8.0'
+    ports:
+      - '${FORWARD_DB_PORT:-3306}:3306'
+    command: --innodb-use-native-aio=0
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_DATABASE: '${DB_DATABASE}'
+      MYSQL_USER: '${DB_USERNAME}'
+      MYSQL_PASSWORD: '${DB_PASSWORD}'
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+    volumes:
+      - 'mysql:/var/lib/mysql'
+      - '.:/var/www/html'
+    networks:
+      - laravel-api-template
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-p${DB_PASSWORD}"]
+      retries: 3
+      timeout: 5s
+
+  redis:
+    image: 'redis:alpine'
+    ports:
+      - '${FORWARD_REDIS_PORT:-6379}:6379'
+    volumes:
+      - 'redis:/data'
+    networks:
+      - laravel-api-template
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 3
+      timeout: 5s
+
+  mailpit:
+    image: 'axllent/mailpit'
+    ports:
+      - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+      - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+    environment:
+      MP_DATA_FILE: '/var/mailpit/mailpit.db'
+      MP_UI_AUTH_FILE: '/var/mailpit/authfile'
+      MP_SMTP_AUTH_FILE: '/var/mailpit/authfile'
+      MP_SMTP_AUTH_ALLOW_INSECURE: true
+    volumes:
+      - './docker/mailpit:/var/mailpit'
+    networks:
+      - laravel-api-template
+
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - '${FORWARD_PHPMYADMIN_PORT:-8080}:80'
+    environment:
+      - PMA_HOST=mysql
+    networks:
+      - laravel-api-template
+
+  phpredisadmin:
+    image: 'erikdubbelboer/phpredisadmin'
+    ports:
+      - '${FORWARD_PHPREDISADMIN_PORT:-8081}:80'
+    environment:
+      - REDIS_1_HOST=redis
+    networks:
+      - laravel-api-template
+
+volumes:
+  mysql:
+    driver: local
+  redis:
+    driver: local
+
+networks:
+  laravel-api-template:
+    driver: bridge
