@@ -1,4 +1,12 @@
-FROM php:8.3.6-fpm AS base
+FROM node:22.2.0-slim AS nodejs
+
+FROM php:8.3-fpm AS base
+
+# Copy Node.js & NPM
+COPY --from=nodejs /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=nodejs /usr/local/bin/node /usr/local/bin/node
+
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 # Install system packages
 RUN apt-get update -y && apt-get install -y \
