@@ -18,7 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->redirectGuestsTo('/');
+        $middleware->redirectGuestsTo(function (Request $request) {
+            if ($request->is('api/*')) {
+                return Response::error(__('Unauthorized'), Response::UNAUTHORIZED);
+            }
+
+            return route('nova.pages.login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {
@@ -30,25 +36,25 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (AuthenticationException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*')) {
                 return Response::error(__('Unauthorized'), Response::UNAUTHORIZED);
             }
         });
 
         $exceptions->render(function (NotFoundHttpException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*')) {
                 return Response::error(__('Not found'), $e->getStatusCode());
             }
         });
 
         $exceptions->render(function (AccessDeniedHttpException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*')) {
                 return Response::error(__('Forbidden'), $e->getStatusCode());
             }
         });
 
         $exceptions->render(function (ValidationException $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*')) {
                 $errors = [];
 
                 foreach ($e->errors() as $field => $messages) {
@@ -63,7 +69,7 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (Throwable $e, Request $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
+            if ($request->is('api/*')) {
                 if (method_exists($e, 'getStatusCode')) {
                     $code = $e->getStatusCode();
                 } else {
