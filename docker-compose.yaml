@@ -44,6 +44,17 @@ services:
   #    - mysql
   #    - redis
 
+  #scheduler:
+  #  image: 'laravel-api-template:latest'
+  #  networks:
+  #    - laravel-api-template
+  #  volumes:
+  #    - '.:/var/www/html'
+  #  entrypoint: /bin/sh -c "while true; do php /var/www/html/artisan schedule:run; sleep 60; done"
+  #  depends_on:
+  #    - mysql
+  #    - redis
+
   mysql:
     image: 'mysql:8.0'
     ports:
