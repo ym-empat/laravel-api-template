@@ -1,0 +1,30 @@
+image: amazon/aws-cli:2.17.49
+
+options:
+  size: 4x
+
+definitions:
+  services:
+    docker:
+      memory: 4096
+
+pipelines:
+  branches:
+    master:
+      - step: 
+          name: Build and push docker image
+          deployment: master
+          services:
+            - docker
+          caches:
+            - docker
+          script:
+            - aws ecr get-login-password | docker login -u AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+            - docker build -f docker/api/prod.Dockerfile --build-arg NOVA_USER=$NOVA_USER --build-arg NOVA_TOKEN=$NOVA_TOKEN --build-arg BUILD_NUMBER=$BITBUCKET_BUILD_NUMBER -t laravel-api-template:$BITBUCKET_BUILD_NUMBER -t laravel-api-template:latest .
+            - pipe: atlassian/aws-ecr-push-image:2.4.2
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                AWS_DEFAULT_REGION: $AWS_DEFAULT_REGION
+                IMAGE_NAME: laravel-api-template
+                TAGS: $BITBUCKET_BUILD_NUMBER latest
