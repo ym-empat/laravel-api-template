@@ -1,66 +1,114 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# {Project} Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This repository contains the backend API for the {Project} project. The project is containerized using Docker and Docker Compose, making it easy to set up and deploy.
 
-## About Laravel
+## Prerequisites
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Ensure you have the following installed on your system:
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Environment Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Before starting the project, ensure you have the necessary environment files:
 
-## Learning Laravel
+1. Create a `.env` file from the provided `.env.example` template:
+   ```sh
+   cp .env.example .env
+   ```
+2. The project includes an admin panel using Laravel Nova, which is installed from a private repository. Before launching the project, you need to create an `auth.json` file with authentication credentials:
+   ```json
+   {
+       "http-basic": {
+           "nova.laravel.com": {
+               "username": "ng@empat.tech",
+               "password": "password" 
+           }
+       }
+   }
+   ```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Getting Started
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 1. Build the API Container
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Before starting the project, build the API container:
+```sh
+docker-compose build api
+```
 
-## Laravel Sponsors
+### 2. Start the API Container
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Run the following command to start the API container and install dependencies:
+```sh
+docker-compose up api
+```
+Wait for the container to complete the installation of dependencies.
 
-### Premium Partners
+### 3. Stop the API Container
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+Once dependencies are installed, stop the API container:
+```sh
+docker-compose down
+```
 
-## Contributing
+### 4. Start All Containers
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Now, start all services in detached mode:
+```sh
+docker-compose up -d
+```
 
-## Code of Conduct
+### 5. Enter the API Container
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+To run database migrations and set up the application, access the API container:
+```sh
+docker-compose exec api bash
+```
 
-## Security Vulnerabilities
+### 6. Run Migrations
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Inside the container, run the database migrations:
+```sh
+php artisan migrate
+```
 
-## License
+For seeding database run:
+```sh
+php artisan db:seed
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Services Overview
+
+This project consists of multiple services:
+
+- **nginx**: The web server, serving API
+- **api**: The main backend service.
+- **horizon**: Laravel Horizon for queue management.
+- **scheduler**: Runs scheduled tasks.
+- **mysql**: MySQL database.
+- **redis**: Redis caching server.
+- **mailpit**: Mail testing tool.
+- **phpmyadmin**: MySQL management interface.
+- **phpredisadmin**: Redis administration tool.
+
+## Useful Commands
+
+- Stop all services:
+  ```sh
+  docker-compose down
+  ```
+- Restart all services:
+  ```sh
+  docker-compose up -d --build
+  ```
+- View logs:
+  ```sh
+  docker-compose logs -f api
+  ```
+- Access MySQL via phpMyAdmin: `http://localhost:8080` (default credentials are set in `.env`).
+- Access Redis Admin: `http://localhost:8081`.
+
+## Conclusion
+
+Your {Project} backend API should now be running successfully. If you encounter any issues, check the logs and ensure all services are properly running.
