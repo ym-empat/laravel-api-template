@@ -61,12 +61,17 @@ docker-compose up -d
 
 ### 5. Enter the API Container
 
-To run database migrations and set up the application, access the API container:
+To install dependencies, run database migrations and set up the application, access the API container:
 ```sh
 docker-compose exec api bash
 ```
 
-### 6. Run Migrations
+### 6. Install dependencies
+```sh
+composer i
+```
+
+### 7. Run Migrations
 
 Inside the container, run the database migrations:
 ```sh
